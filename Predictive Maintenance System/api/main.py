@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ROOT       = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = ROOT / 'models' / 'model.pkl'
 
 if not MODEL_PATH.exists():
@@ -25,11 +25,6 @@ artifact = joblib.load(str(MODEL_PATH))
 pipeline = artifact['pipeline']
 FEATURES = artifact['features']
 
-# ── Build a fallback value per feature from the imputer's learned medians ──
-# The pipeline's first step is a SimpleImputer(strategy='median').
-# After fitting, imputer.statistics_ holds the median of each feature
-# from training data. We use these as defaults for missing features
-# instead of 0, which was completely out of distribution.
 imputer         = pipeline.named_steps['imputer']
 FEATURE_MEDIANS = dict(zip(FEATURES, imputer.statistics_))
 
@@ -42,14 +37,13 @@ class SensorReading(BaseModel):
 def predict(reading: SensorReading):
     row = pd.DataFrame([reading.sensors])
 
-    # Fill every missing feature with its training median (not 0)
     for col in FEATURES:
         if col not in row.columns:
             row[col] = FEATURE_MEDIANS[col]
 
     row      = row[FEATURES]
     rul_pred = float(pipeline.predict(row)[0])
-    rul_pred = max(0.0, rul_pred)                    # never negative
+    rul_pred = max(0.0, rul_pred)                    
 
     failure_prob = float(1 / (1 + np.exp((rul_pred - 30) / 10)))
 
