@@ -1,19 +1,39 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import joblib
 
-app = FastAPI(title = "Predictive Maintenance Api")
+app = FastAPI(title="Predictive Maintenance API")
 
-model = joblib.load('models/model.pkl')
-pipeline  = model['pipeline']
-FEATURES  = model['features']
+# Allow dashboard (Streamlit) to call the API without CORS issues
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Resolve model path relative to this file (works from any working directory) ---
+ROOT       = Path(__file__).resolve().parent.parent
+MODEL_PATH = ROOT / 'models' / 'model.pkl'
+
+if not MODEL_PATH.exists():
+    raise FileNotFoundError(
+        f"Model not found at {MODEL_PATH}. "
+        "Please run 'python src/train.py' from the project root first."
+    )
+
+model    = joblib.load(str(MODEL_PATH))
+pipeline = model['pipeline']
+FEATURES = model['features']
 
 class SensorReading(BaseModel):
     unit: int
     cycle: int
-    sensors: dict  
+    sensors: dict
 
 @app.post("/predict")
 def predict(reading: SensorReading):
@@ -22,10 +42,10 @@ def predict(reading: SensorReading):
         if col not in row.columns:
             row[col] = 0
     row = row[FEATURES]
-    
-    rul_pred = float(pipeline.predict(row)[0])
+
+    rul_pred     = float(pipeline.predict(row)[0])
     failure_prob = float(1 / (1 + np.exp((rul_pred - 30) / 10)))
-    
+
     return {
         "unit": reading.unit,
         "predicted_RUL": round(rul_pred, 1),
@@ -36,5 +56,3 @@ def predict(reading: SensorReading):
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-

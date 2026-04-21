@@ -24,7 +24,7 @@ def add_rolling_features(df, windows=[5, 10, 20]):
 def add_lag_features(df, lags=[1, 2, 5]):
     for lag in lags:
         for col in SENSOR_COLS:
-            df[f'{col}_lag{lag}'] = df.groupby('unit')[col].shift(lag).fillna(method='bfill')
+            df[f'{col}_lag{lag}'] = df.groupby('unit')[col].shift(lag).bfill()
     return df
 
 # Simple moving average smoothing
