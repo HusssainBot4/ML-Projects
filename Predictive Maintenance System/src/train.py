@@ -12,7 +12,6 @@ import numpy as np
 import sys
 import os
 
-# --- Resolve project root (works from any working directory) ---
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'src'))
 
@@ -23,7 +22,6 @@ DATA_PATH  = ROOT / 'data' / 'raw' / 'train_FD001.txt'
 MODEL_DIR  = ROOT / 'models'
 MODEL_PATH = MODEL_DIR / 'model.pkl'
 
-# Create models directory if it doesn't exist
 MODEL_DIR.mkdir(exist_ok=True)
 
 train_raw = load_cmapss(str(DATA_PATH))
@@ -47,7 +45,6 @@ pipeline = Pipeline([
 
 pipeline.fit(X, y)
 
-# Evaluation
 preds = pipeline.predict(X)
 print(f"Train RMSE: {np.sqrt(mean_squared_error(y, preds)):.2f}")
 print(f"Train MAE:  {mean_absolute_error(y, preds):.2f}")

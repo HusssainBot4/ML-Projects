@@ -16,14 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Resolve model path relative to this file (works from any working directory) ---
-ROOT       = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = ROOT / 'models' / 'model.pkl'
 
 if not MODEL_PATH.exists():
     raise FileNotFoundError(
         f"Model not found at {MODEL_PATH}. "
-        "Please run 'python src/train.py' from the project root first."
     )
 
 model    = joblib.load(str(MODEL_PATH))

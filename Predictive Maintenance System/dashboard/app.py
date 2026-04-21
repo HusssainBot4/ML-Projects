@@ -8,7 +8,6 @@ API_URL = "http://localhost:8000/predict"
 MACHINES = [1, 2, 3, 4, 5]
 
 def fake_sensor_reading(unit):
-    """Simulates a live sensor push."""
     return {
         "unit": unit,
         "cycle": random.randint(50, 300),
@@ -24,7 +23,7 @@ cols = st.columns(len(MACHINES))
 placeholders = [col.empty() for col in cols]
 
 if st.button("Start Live Monitoring"):
-    for _ in range(20):  # run 20 refresh cycles
+    for _ in range(20):  
         for i, unit in enumerate(MACHINES):
             payload = fake_sensor_reading(unit)
             try:
